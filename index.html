@@ -1,0 +1,247 @@
+<!DOCTYPE html><html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>도로주행 학습 도우미</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --primary: #38bdf8;
+      --accent: #ffffff; /* Accent updated to white */
+      --text: #c9d1d9;
+      --radius: 8px;
+      --transition: 0.3s;
+      --font: 'Inter', sans-serif;
+      --shadow: rgba(0, 0, 0, 0.5);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    #app {
+      width: 100%; max-width: 900px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 8px 24px var(--shadow);
+      display: flex; flex-direction: column;
+    }
+    h1 {
+      text-align: center;
+      padding: 20px;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--primary);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .controls {
+      display: flex; flex-wrap: wrap;
+      gap: 12px; justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(6px);
+      background: rgba(22,27,34,0.6);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .controls button, .controls select {
+      appearance: none;
+      background: none;
+      color: var(--text);
+      border: 2px solid var(--text);
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      flex: 1 1 auto;
+      min-width: 100px;
+      text-align: center;
+    }
+    .controls button:hover, .controls select:hover {
+      background: var(--primary);
+      color: #0d1117;
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px var(--shadow);
+    }
+    #video-wrapper {
+      position: relative;
+      width: 100%; padding-bottom: 56.25%; background: #000;
+    }
+    #player {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; border: none;
+    }
+    #progress-container {
+      height: 6px; background: rgba(255,255,255,0.1);
+      cursor: pointer; margin: 8px 16px; border-radius: 3px; overflow: hidden;
+    }
+    #progress {
+      width: 0%; height: 100%; background: var(--accent);
+      transition: width var(--transition) ease;
+    }
+    .study-tools {
+      padding: 16px; flex: 1; display: flex; flex-direction: column;
+    }
+    .tool {
+      display: flex; gap: 8px; align-items: center; margin-bottom: 12px;
+    }
+    .tool input {
+      flex: 1; padding: 10px; background: #0d1117;
+      border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius);
+      color: var(--text); font-size: 0.95rem; transition: border var(--transition);
+    }
+    .tool input:focus {
+      border-color: var(--primary); outline: none; box-shadow: 0 0 8px var(--primary);
+    }
+    .tool button {
+      background: var(--accent); border: none; border-radius: var(--radius);
+      color: #0d1117; padding: 10px 16px; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: background var(--transition), transform var(--transition);
+    }
+    .tool button:hover {
+      background: var(--primary); transform: scale(1.05);
+    }
+    #notesList {
+      list-style: none; padding: 0; margin: 0;
+      overflow-y: auto; flex: 1;
+    }
+    #notesList li {
+      display: flex; align-items: center; padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background var(--transition);
+    }
+    #notesList li:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .time {
+      color: var(--accent); font-weight: 600;
+      margin-right: 8px; width: 50px; flex-shrink: 0;
+    }
+    .note-text { flex: 1; font-size: 0.95rem; }
+    .delete-btn {
+      background: transparent; border: none; color: var(--accent);
+      font-size: 1.2rem; cursor: pointer; transition: transform var(--transition);
+      margin-left: 8px; flex-shrink: 0;
+    }
+    .delete-btn:hover { transform: scale(1.2); }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.4rem; padding: 12px; }
+      .controls { gap: 6px; padding: 12px; }
+      .controls button, .controls select, .tool button, .tool input { font-size: 0.85rem; padding: 8px 12px; }
+      #progress-container { margin: 8px 12px; }
+      .tool { margin-bottom: 8px; }
+      #notesList li { padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>도로주행 학습 도우미</h1>
+    <div class="controls">
+      <button data-course="A">A 코스</button>
+      <button data-course="B">B 코스</button>
+      <button data-course="C">C 코스</button>
+      <button data-course="D">D 코스</button>
+      <select id="speed">
+        <option value="0.5">0.5x</option>
+        <option value="1">1x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2" selected>2x</option>
+      </select>
+    </div>
+    <div id="video-wrapper">
+      <div id="player"></div>
+    </div>
+    <div id="progress-container"><div id="progress"></div></div>
+    <div class="study-tools">
+      <div class="tool">
+        <input id="noteInput" placeholder="노트를 입력 후 Enter" />
+        <button id="saveNote">저장</button>
+      </div>
+      <ul id="notesList"></ul>
+    </div>
+  </div>  <script src="https://www.youtube.com/iframe_api"></script>  <script>
+    const courses = { A: '0BrLvjjfWVc', B: 'NgKdbRki3KM', C: '-qd0NhJam20', D: '8OTZ_mmWMEQ' };
+    let player;
+    let notes = JSON.parse(localStorage.getItem('notes') || '[]');
+
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        width: '100%', height: '100%',
+        videoId: courses.A,
+        playerVars: { controls: 1, rel: 0 },
+        events: { onReady: init }
+      });
+    }
+    
+    function init() {
+      document.querySelectorAll('[data-course]').forEach(btn => btn.onclick = () => loadCourse(btn.dataset.course));
+      document.getElementById('speed').onchange = e => player.setPlaybackRate(parseFloat(e.target.value));
+      document.getElementById('noteInput').addEventListener('keyup', e => e.key === 'Enter' && saveNote());
+      document.getElementById('saveNote').onclick = saveNote;
+      document.getElementById('progress-container').onclick = e => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const pct = (e.clientX - rect.left) / rect.width;
+        player.seekTo(player.getDuration() * pct, true);
+      };
+      renderNotes(); setInterval(updateProgress, 200);
+    }
+    
+    function loadCourse(key) {
+      player.loadVideoById({ videoId: courses[key], startSeconds: 0 });
+      notes = []; localStorage.removeItem('notes'); renderNotes();
+    }
+    
+    function updateProgress() {
+      const pct = (player.getCurrentTime() / player.getDuration()) * 100;
+      document.getElementById('progress').style.width = pct + '%';
+    }
+    
+    function formatTime(sec) {
+      const m = String(Math.floor(sec/60)).padStart(2,'0');
+      const s = String(Math.floor(sec%60)).padStart(2,'0');
+      return `${m}:${s}`;
+    }
+    
+    function saveNote() {
+      const input = document.getElementById('noteInput');
+      const text = input.value.trim(); if (!text) return;
+      notes.push({ time: player.getCurrentTime(), text });
+      localStorage.setItem('notes', JSON.stringify(notes));
+      input.value = '';
+      renderNotes();
+    }
+    
+    function renderNotes() {
+      const ul = document.getElementById('notesList'); ul.innerHTML = '';
+      notes.forEach((n, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span class="time">${formatTime(n.time)}</span>
+          <span class="note-text">${n.text}</span>
+          <button class="delete-btn" title="삭제">✕</button>
+        `;
+        li.onclick = () => player.seekTo(n.time, true);
+        const del = li.querySelector('.delete-btn');
+        del.onclick = e => {
+          e.stopPropagation();
+          notes.splice(i, 1);
+          localStorage.setItem('notes', JSON.stringify(notes));
+          renderNotes();
+        };
+        ul.appendChild(li);
+      });
+    }
+  </script></body>
+</html>
