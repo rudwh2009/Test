@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="ko">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +10,7 @@
       --bg: #0d1117;
       --surface: #161b22;
       --primary: #38bdf8;
-      --accent: #ffffff; /* Accent updated to white */
+      --accent: #ffffff;
       --text: #c9d1d9;
       --radius: 8px;
       --transition: 0.3s;
@@ -77,59 +78,38 @@
       position: relative;
       width: 100%; padding-bottom: 56.25%; background: #000;
     }
-    #player {
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%; border: none;
-    }
+    #player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
     #progress-container {
       height: 6px; background: rgba(255,255,255,0.1);
       cursor: pointer; margin: 8px 16px; border-radius: 3px; overflow: hidden;
     }
-    #progress {
-      width: 0%; height: 100%; background: var(--accent);
-      transition: width var(--transition) ease;
-    }
-    .study-tools {
-      padding: 16px; flex: 1; display: flex; flex-direction: column;
-    }
-    .tool {
-      display: flex; gap: 8px; align-items: center; margin-bottom: 12px;
-    }
+    #progress { width: 0%; height: 100%; background: var(--accent); transition: width var(--transition) ease; }
+    .study-tools { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+    .tool { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
     .tool input {
       flex: 1; padding: 10px; background: #0d1117;
       border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius);
       color: var(--text); font-size: 0.95rem; transition: border var(--transition);
     }
-    .tool input:focus {
-      border-color: var(--primary); outline: none; box-shadow: 0 0 8px var(--primary);
-    }
+    .tool input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 8px var(--primary); }
     .tool button {
       background: var(--accent); border: none; border-radius: var(--radius);
       color: #0d1117; padding: 10px 16px; font-size: 0.95rem; font-weight: 600;
       cursor: pointer; transition: background var(--transition), transform var(--transition);
     }
-    .tool button:hover {
-      background: var(--primary); transform: scale(1.05);
-    }
-    #notesList {
-      list-style: none; padding: 0; margin: 0;
-      overflow-y: auto; flex: 1;
-    }
+    .tool button:hover { background: var(--primary); transform: scale(1.05); }
+    #notesList { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
     #notesList li {
       display: flex; align-items: center; padding: 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      transition: background var(--transition);
+      border-bottom: 1px solid rgba(255,255,255,0.05); transition: background var(--transition);
     }
-    #notesList li:hover {
-      background: rgba(255,255,255,0.05);
-    }
+    #notesList li:hover { background: rgba(255,255,255,0.05); }
     .time {
       color: var(--accent); font-weight: 600;
       margin-right: 8px; width: 50px; flex-shrink: 0;
     }
     .note-text { flex: 1; font-size: 0.95rem; }
-    .delete-btn {
-      background: transparent; border: none; color: var(--accent);
+    .delete-btn { background: transparent; border: none; color: var(--accent);
       font-size: 1.2rem; cursor: pointer; transition: transform var(--transition);
       margin-left: 8px; flex-shrink: 0;
     }
@@ -160,9 +140,7 @@
         <option value="2" selected>2x</option>
       </select>
     </div>
-    <div id="video-wrapper">
-      <div id="player"></div>
-    </div>
+    <div id="video-wrapper"><div id="player"></div></div>
     <div id="progress-container"><div id="progress"></div></div>
     <div class="study-tools">
       <div class="tool">
@@ -171,17 +149,18 @@
       </div>
       <ul id="notesList"></ul>
     </div>
-  </div>  <script src="https://www.youtube.com/iframe_api"></script>  <script>
-    const courses = { A: '0BrLvjjfWVc', B: 'NgKdbRki3KM', C: '-qd0NhJam20', D: '8OTZ_mmWMEQ' };
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    let currentCourse = 'A';
     let player;
-    let notes = JSON.parse(localStorage.getItem('notes') || '[]');
+    let notes = JSON.parse(localStorage.getItem('notes_' + currentCourse) || '[]');
 
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
-        width: '100%', height: '100%',
-        videoId: courses.A,
-        playerVars: { controls: 1, rel: 0 },
-        events: { onReady: init }
+        width: '100%', height: '100%', videoId: courses[currentCourse],
+        playerVars: { controls: 1, rel: 0 }, events: { onReady: init }
       });
     }
     
@@ -197,51 +176,39 @@
       };
       renderNotes(); setInterval(updateProgress, 200);
     }
-    
+
+    const courses = { A: '0BrLvjjfWVc', B: 'NgKdbRki3KM', C: '-qd0NhJam20', D: '8OTZ_mmWMEQ' };
+
     function loadCourse(key) {
+      currentCourse = key;
       player.loadVideoById({ videoId: courses[key], startSeconds: 0 });
-      notes = []; localStorage.removeItem('notes'); renderNotes();
+      notes = JSON.parse(localStorage.getItem('notes_' + key) || '[]');
+      renderNotes();
     }
-    
+
     function updateProgress() {
       const pct = (player.getCurrentTime() / player.getDuration()) * 100;
       document.getElementById('progress').style.width = pct + '%';
     }
-    
+
     function formatTime(sec) {
       const m = String(Math.floor(sec/60)).padStart(2,'0');
       const s = String(Math.floor(sec%60)).padStart(2,'0');
       return `${m}:${s}`;
     }
-    
+
     function saveNote() {
       const input = document.getElementById('noteInput');
       const text = input.value.trim(); if (!text) return;
       notes.push({ time: player.getCurrentTime(), text });
-      localStorage.setItem('notes', JSON.stringify(notes));
+      localStorage.setItem('notes_' + currentCourse, JSON.stringify(notes));
       input.value = '';
       renderNotes();
     }
-    
+
     function renderNotes() {
       const ul = document.getElementById('notesList'); ul.innerHTML = '';
       notes.forEach((n, i) => {
         const li = document.createElement('li');
         li.innerHTML = `
-          <span class="time">${formatTime(n.time)}</span>
-          <span class="note-text">${n.text}</span>
-          <button class="delete-btn" title="삭제">✕</button>
-        `;
-        li.onclick = () => player.seekTo(n.time, true);
-        const del = li.querySelector('.delete-btn');
-        del.onclick = e => {
-          e.stopPropagation();
-          notes.splice(i, 1);
-          localStorage.setItem('notes', JSON.stringify(notes));
-          renderNotes();
-        };
-        ul.appendChild(li);
-      });
-    }
-  </script></body>
-</html>
+          <span class="time">${formatT
